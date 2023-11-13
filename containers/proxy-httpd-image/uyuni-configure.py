@@ -241,6 +241,18 @@ ProxyPassReverse /cobbler https://{config['server']}/cobbler
     os.system('chown root:www /etc/rhn/rhn.conf')
     os.system('chmod 640 /etc/rhn/rhn.conf')
 
+
+# set squid host from environment if passed and you use docker instead podman
+squid_host = os.getenv("SQUID_HOST", config.get("squid_host", None))
+if squid_host:
+    with open("/usr/share/rhn/config-defaults/rhn_proxy.conf", 'w') as file:
+        file_content = file.read()
+        file_content = re.sub(r"squid = .*", f"squid = {squid_host}:8080", file_content)
+        file.seek(0,0)
+        file.write(file_content)
+        file.truncate()
+
+
 # Make sure permissions are set as desired
 os.system('chown -R wwwrun:www /var/spool/rhn-proxy')
 os.system('chmod -R 750 /var/spool/rhn-proxy')
